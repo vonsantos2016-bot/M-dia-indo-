@@ -15,7 +15,7 @@ jobs:
 
       - name: Descompactar projeto
         run: |
-          unzip -o signagebox-voltbuilder-v3.zip -d projeto_temp
+          unzip -o signagebox-voltbuilder.zip -d projeto_temp
           cd projeto_temp
           if [ ! -f config.xml ]; then mv */* . ; fi
           mv * .. 2>/dev/null || true
@@ -31,11 +31,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Instalar Cordova e compilar APK
+      - name: Instalar Cordova, Plugins e compilar APK
         run: |
           npm init -y
           npm install -g cordova
           cordova platform add android
+          cordova prepare android
           cordova build android
 
       - name: Disponibilizar APK
@@ -43,4 +44,3 @@ jobs:
         with:
           name: signagebox-apk
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
-          
