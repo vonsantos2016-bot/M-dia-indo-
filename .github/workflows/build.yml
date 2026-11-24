@@ -13,12 +13,19 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Descompactar projeto
+      - name: Descompactar e organizar projeto
         run: |
-          unzip -o signagebox-voltbuilder.zip -d projeto_temp
-          cd projeto_temp
-          if [ ! -f config.xml ]; then mv */* . ; fi
-          mv * .. 2>/dev/null || true
+          unzip -o signagebox-voltbuilder.zip -d temp_extract
+          CONFIG_PATH=$(find temp_extract -name "config.xml" | head -n 1)
+          PROJECT_DIR=$(dirname "$CONFIG_PATH")
+          cp -r "$PROJECT_DIR"/* .
+          rm -rf temp_extract
+          mkdir -p resources
+          if [ ! -f resources/icon.png ] && [ -f www/images/icon.png ]; then
+            cp www/images/icon.png resources/icon.png
+          fi
+          ls -la
+          ls -la resources/
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -31,7 +38,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Instalar Cordova, Plugins e compilar APK
+      - name: Instalar Cordova e compilar APK
         run: |
           npm init -y
           npm install -g cordova
