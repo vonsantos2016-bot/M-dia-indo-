@@ -13,12 +13,16 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Descompactar e corrigir ícones automaticamente
+      - name: Descompactar e corrigir config.xml e ícones
         run: |
           unzip -o signagebox-voltbuilder.zip -d temp_extract
           CONFIG_PATH=$(find temp_extract -iname "config.xml" | head -n 1)
           PROJECT_DIR=$(dirname "$CONFIG_PATH")
           cp -r "$PROJECT_DIR"/* .
+          
+          # Corrige cores 0xff... para #... no config.xml
+          sed -i 's/0xff/#/gi' config.xml
+          sed -i 's/0x/#/gi' config.xml
           
           mkdir -p resources
           FOUND_ICON=$(find temp_extract -iname "*icon*.png" | head -n 1)
