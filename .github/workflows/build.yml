@@ -20,6 +20,7 @@ jobs:
           PROJECT_DIR=$(dirname "$PKG_PATH")
           cp -r "$PROJECT_DIR"/* .
           rm -rf temp_extract
+          echo "});" >> src/components/dynamic/WidgetRenderer.tsx
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
