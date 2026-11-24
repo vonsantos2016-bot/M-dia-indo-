@@ -35,6 +35,7 @@ jobs:
       - name: Instalar dependências e gerar Android
         run: |
           npm install
+          npx expo install expo-asset
           npx expo prebuild --platform android --no-install
 
       - name: Compilar APK Release
