@@ -1,0 +1,46 @@
+name: Gerar APK SignageBox
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Descompactar projeto
+        run: |
+          unzip -o signagebox-voltbuilder-v3.zip -d projeto_temp
+          cd projeto_temp
+          if [ ! -f config.xml ]; then mv */* . ; fi
+          mv * .. 2>/dev/null || true
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar Cordova e compilar APK
+        run: |
+          npm init -y
+          npm install -g cordova
+          cordova platform add android
+          cordova build android
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: signagebox-apk
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
