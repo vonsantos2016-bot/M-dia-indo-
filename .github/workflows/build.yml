@@ -13,19 +13,35 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Descompactar e organizar projeto
+      - name: Descompactar e corrigir ícones automaticamente
         run: |
           unzip -o signagebox-voltbuilder.zip -d temp_extract
-          CONFIG_PATH=$(find temp_extract -name "config.xml" | head -n 1)
+          CONFIG_PATH=$(find temp_extract -iname "config.xml" | head -n 1)
           PROJECT_DIR=$(dirname "$CONFIG_PATH")
           cp -r "$PROJECT_DIR"/* .
-          rm -rf temp_extract
+          
           mkdir -p resources
-          if [ ! -f resources/icon.png ] && [ -f www/images/icon.png ]; then
-            cp www/images/icon.png resources/icon.png
-          fi
-          ls -la
-          ls -la resources/
+          FOUND_ICON=$(find temp_extract -iname "*icon*.png" | head -n 1)
+          FOUND_SPLASH=$(find temp_extract -iname "*splash*.png" | head -n 1)
+          
+          if [ -n "$FOUND_ICON" ]; then cp "$FOUND_ICON" resources/icon.png; fi
+          if [ -n "$FOUND_SPLASH" ]; then cp "$FOUND_SPLASH" resources/splash.png; fi
+          
+          python3 -c '
+          import os, zlib, struct
+          def make_png(path):
+              if not os.path.exists(path):
+                  w, h = 512, 512
+                  raw = b"".join(b"\x00" + b"\x00\x78\xd7\xff" * w for _ in range(h))
+                  def chunk(t, d):
+                      return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
+                  ihdr = struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)
+                  with open(path, "wb") as f:
+                      f.write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+          make_png("resources/icon.png")
+          make_png("resources/splash.png")
+          '
+          rm -rf temp_extract
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
